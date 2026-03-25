@@ -7,7 +7,7 @@ from requests import Session
 class PPPoker:
     def __init__(
             self,
-            app_id: str = "globle", 
+            app_id: str = "globle",
             app_type: int = 1,
             language: str = "ru",
             platform: str = "android",
@@ -31,6 +31,14 @@ class PPPoker:
         self.imei = self.generate_imei()
         self.version = self.get_client_version()["latest_version"]
 
+    def _post(self, base: str, endpoint: str, data: dict = None) -> dict:
+        return self.session.post(
+            f"{base}{endpoint}", data=data).json()
+
+    def _get(self, base: str, endpoint: str) -> dict:
+        return self.session.get(
+            f"{base}{endpoint}").json()
+
     def md5_hash(self, string: str) -> str:
         return md5(md5(string.encode()).hexdigest().encode()).hexdigest()
 
@@ -38,14 +46,13 @@ class PPPoker:
         return randint(1000_0000_0000_000, 9000_0000_0000_000)
 
     def get_client_version(self) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/version.php").json()
+        return self._get(self.public_api, "/poker/api/version.php")
 
     def login(
-            self, 
-            username: str, 
-            password: str, 
-            type: int = 4) -> dict:
+            self,
+            username: str,
+            password: str,
+            login_type: int = 4) -> dict:
         data = {
             "app_type": self.app_type,
             "appid": self.app_id,
@@ -64,11 +71,10 @@ class PPPoker:
             "platform_type": 2,
             "region": self.region,
             "sub_distributor": 0,
-            "type": type,
+            "type": login_type,
             "username": username
         }
-        response = self.session.post(
-            f"{self.public_api}/poker/api/login.php",  data=data).json()
+        response = self._post(self.public_api, "/poker/api/login.php", data)
         if "uid" in response:
             self.user_id = response["uid"]
             self.rd_key = response["rdkey"]
@@ -94,26 +100,24 @@ class PPPoker:
             "platform_type": 2,
             "region": self.region,
             "sub_distributor": 0,
-            "type": 1,
+            "type": 1
         }
-        response = self.session.post(
-            f"{self.public_api}/poker/api/login.php", 
-            data=data).json()
+        response = self._post(self.public_api, "/poker/api/login.php", data)
         if "uid" in response:
             self.user_id = response["uid"]
             self.rd_key = response["rdkey"]
         return response
 
-    def register(
-            self,
-            username: str,
-            password: str) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/register.php?username={username}&password={self.md5_hash(password)}&distributor=0&sub_distributor=0&country={self.country}&appid={self.app_id}&os={self.platform}&imei={self.imei}&clientvar={self.version}&ad_id={uuid4()}&region={self.region}&app_type={self.app_type}").json()
+    def register(self, username: str, password: str) -> dict:
+        return self._get(
+            self.public_api,
+            f"/poker/api/register.php?username={username}&password={self.md5_hash(password)}&distributor=0&sub_distributor=0&country={self.country}&appid={self.app_id}&os={self.platform}&imei={self.imei}&clientvar={self.version}&ad_id={uuid4()}&region={self.region}&app_type={self.app_type}")
 
-    def get_verification_code(self, email: str, valid_type: int = 1) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/mail/send_valid_code.php?mail={email}&valid_type={valid_type}&lang={self.language}").json()
+    def get_verification_code(
+            self, email: str, valid_type: int = 1) -> dict:
+        return self._get(
+            self.public_api,
+            f"/poker/api/mail/send_valid_code.php?mail={email}&valid_type={valid_type}&lang={self.language}")
 
     def edit_profile(self, country: str) -> dict:
         data = {
@@ -121,13 +125,13 @@ class PPPoker:
             "rdkey": self.rd_key,
             "uid": self.user_id
         }
-        return self.session.post(
-            f"{self.public_api}/poker/api/modify_userinfo.php",
-            data=data).json()
+        return self._post(
+            self.public_api, "/poker/api/modify_userinfo.php", data)
 
     def get_portraits(self) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker-api/portrait/list?uid={self.user_id}&rdkey={self.rd_key}").json()
+        return self._get(
+            self.public_api,
+            f"/poker-api/portrait/list?uid={self.user_id}&rdkey={self.rd_key}")
 
     def change_portrait(self, icon_name: str) -> dict:
         data = {
@@ -135,112 +139,103 @@ class PPPoker:
             "rdkey": self.rd_key,
             "uid": self.user_id
         }
-        return self.session.post(
-            f"{self.public_api}/poker-api/portrait/choice",
-            data=data).json()
+        return self._post(
+            self.public_api, "/poker-api/portrait/choice", data)
 
     def get_user_invite_code(self) -> dict:
-        return self.session.get(
-            f"{self.public_api}/server_api/user_invite/code?uid={self.user_id}&rdkey={self.rd_key}").json()
+        return self._get(
+            self.public_api,
+            f"/server_api/user_invite/code?uid={self.user_id}&rdkey={self.rd_key}")
 
     def get_user_tasks(self) -> dict:
-        return self.session.get(
-            f"{self.public_api}/server_api/new_user_task/tasks?uid={self.user_id}&rdkey={self.rd_key}").json()
+        return self._get(
+            self.public_api,
+            f"/server_api/new_user_task/tasks?uid={self.user_id}&rdkey={self.rd_key}")
 
     def link_email(
-            self,
-            email: str,
-            verification_code: int) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/mail/valid_mail.php?mail={email}&valid_code={verification_code}&rdkey={self.rd_key}&uid={self.user_id}").json()
+            self, email: str, verification_code: int) -> dict:
+        return self._get(
+            self.public_api,
+            f"/poker/api/mail/valid_mail.php?mail={email}&valid_code={verification_code}&rdkey={self.rd_key}&uid={self.user_id}")
 
-    def unlink_email(
-            self,
-            email: str,
-            password: str) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/mail/unlink_mail.php?mail={email}&password={self.md5_hash(password)}&uid={self.user_id}").json()
+    def unlink_email(self, email: str, password: str) -> dict:
+        return self._get(
+            self.public_api,
+            f"/poker/api/mail/unlink_mail.php?mail={email}&password={self.md5_hash(password)}&uid={self.user_id}")
 
     def change_password(
-            self,
-            new_password: str,
-            old_password: str) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/mail/change_pw.php?uid={self.user_id}&password={self.md5_hash(new_password)}&old_password={self.md5_hash(old_password)}").json()
+            self, new_password: str, old_password: str) -> dict:
+        return self._get(
+            self.public_api,
+            f"/poker/api/mail/change_pw.php?uid={self.user_id}&password={self.md5_hash(new_password)}&old_password={self.md5_hash(old_password)}")
 
     def get_ip_address(self) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/getip.php").json()
+        return self._get(self.public_api, "/poker/api/getip.php")
 
     def check_username(self, username: str) -> dict:
-        return self.session.get(
-            f"{self.public_api}/poker/api/check_username.php?username={username}").json()
+        return self._get(
+            self.public_api,
+            f"/poker/api/check_username.php?username={username}")
 
     def get_hand_review_version(self) -> dict:
-        return self.session.post(
-            f"{self.api}/poker/api/hand_review_version.php").json()
+        return self._post(
+            self.api, "/poker/api/hand_review_version.php")
 
     def get_hand_review(self) -> dict:
-        return self.session.get(
-            f"{self.api}/poker/api/handreview/dict.json").json()
+        return self._get(self.api, "/poker/api/handreview/dict.json")
 
     def get_forum_featured(self, recommend_id: int = 0) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/game_video/recommend_list?uid={self.user_id}&rdkey={self.rd_key}&lang={self.language}&recommend_id={recommend_id}&updated_at={int(time() * 1000)}").json()
+        return self._get(
+            self.bbs_api,
+            f"/api/game_video/recommend_list?uid={self.user_id}&rdkey={self.rd_key}&lang={self.language}&recommend_id={recommend_id}&updated_at={int(time() * 1000)}")
 
     def get_forum_hot(self, tag_id: int = 0) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/game_video/hot_list?uid={self.user_id}&rdkey={self.rd_key}&updated_at={int(time() * 1000)}&tag_id={tag_id}").json()
+        return self._get(
+            self.bbs_api,
+            f"/api/game_video/hot_list?uid={self.user_id}&rdkey={self.rd_key}&updated_at={int(time() * 1000)}&tag_id={tag_id}")
 
     def get_forum_latest(
-            self,
-            post_id: int = 0,
-            tag_id: int = 0) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/game_video/newest_list?rdkey={self.rd_key}&uid={self.user_id}&post_id={post_id}&updated_at={int(time() * 1000)}&tag_id={tag_id}").json()
+            self, post_id: int = 0, tag_id: int = 0) -> dict:
+        return self._get(
+            self.bbs_api,
+            f"/api/game_video/newest_list?rdkey={self.rd_key}&uid={self.user_id}&post_id={post_id}&updated_at={int(time() * 1000)}&tag_id={tag_id}")
 
     def get_forum_mine(
-            self,
-            post_id: int = 0,
-            tag_id: int = 0) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/game_video/personal_list?rdkey={self.rd_key}&uid={self.user_id}&post_id={post_id}&updated_at={int(time() * 1000)}&personal_uid={self.user_id}&tag_id={tag_id}").json()
+            self, post_id: int = 0, tag_id: int = 0) -> dict:
+        return self._get(
+            self.bbs_api,
+            f"/api/game_video/personal_list?rdkey={self.rd_key}&uid={self.user_id}&post_id={post_id}&updated_at={int(time() * 1000)}&personal_uid={self.user_id}&tag_id={tag_id}")
 
-    def get_user_game_videos(self, user_id: int) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/game_video/personal_list?rdkey={self.rd_key}&uid={self.user_id}&post_id={post_id}&updated_at={int(time() * 1000)}&personal_uid={user_id}").json()
+    def get_user_game_videos(
+            self, user_id: int, post_id: int = 0) -> dict:
+        return self._get(
+            self.bbs_api,
+            f"/api/game_video/personal_list?rdkey={self.rd_key}&uid={self.user_id}&post_id={post_id}&updated_at={int(time() * 1000)}&personal_uid={user_id}")
 
     def get_game_video_info(
-            self,
-            share_key: str,
-            post_id: int = -1) -> dict:
+            self, share_key: str, post_id: int = -1) -> dict:
         data = {
             "user_id": self.user_id,
             "post_id": post_id,
             "share_key": share_key,
             "lang": self.language
         }
-        return self.session.post(
-            f"{self.bbs_api}/api/game_video/info",
-            data=data).json()
+        return self._post(
+            self.bbs_api, "/api/game_video/info", data)
 
     def play_game_video(
-            self,
-            share_key: str,
-            position: int) -> dict:
+            self, share_key: str, position: int) -> dict:
         data = {
             "share_key": share_key,
             "uid": self.user_id,
             "rdkey": self.rd_key,
             "position": position
         }
-        return self.session.post(
-            f"{self.bbs_api}/api/game_video/play", data=data).json()
+        return self._post(
+            self.bbs_api, "/api/game_video/play", data)
 
     def comment_game_video(
-            self,
-            topic_id: int,
-            content: str) -> dict:
+            self, topic_id: int, content: str) -> dict:
         data = {
             "user_id": self.user_id,
             "content": content,
@@ -248,9 +243,8 @@ class PPPoker:
             "share_type": -1,
             "share_platform": -1
         }
-        return self.session.post(
-            f"{self.bbs_api}/api/game_video/submit_comment",
-            data=data).json()
+        return self._post(
+            self.bbs_api, "/api/game_video/submit_comment", data)
 
     def like_game_video(self, topic_id: int) -> dict:
         data = {
@@ -260,14 +254,11 @@ class PPPoker:
             "share_type": -1,
             "share_platform": -1
         }
-        return self.session.post(
-            f"{self.bbs_api}/api/game_video/like",
-            data=data).json()
+        return self._post(
+            self.bbs_api, "/api/game_video/like", data)
 
     def like_comment(
-            self,
-            topic_id: int,
-            comment_id: int) -> dict:
+            self, topic_id: int, comment_id: int) -> dict:
         data = {
             "comment_id": comment_id,
             "user_id": self.user_id,
@@ -275,25 +266,25 @@ class PPPoker:
             "share_type": -1,
             "share_platform": -1
         }
-        return self.session.post(
-            f"{self.bbs_api}/api/game_video/like",
-            data=data).json()
+        return self._post(
+            self.bbs_api, "/api/game_video/like", data)
 
     def get_unread_notifications(self) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/notification/unread?uid={self.user_id}&rdkey={self.rd_key}").json()
+        return self._get(
+            self.bbs_api,
+            f"/api/notification/unread?uid={self.user_id}&rdkey={self.rd_key}")
 
     def get_comment_notifications(
-            self,
-            message_id: int = 0) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/notification/comment_msg_list?uid={self.user_id}&rdkey={self.rd_key}&msg_id={message_id}").json()
+            self, message_id: int = 0) -> dict:
+        return self._get(
+            self.bbs_api,
+            f"/api/notification/comment_msg_list?uid={self.user_id}&rdkey={self.rd_key}&msg_id={message_id}")
 
     def get_system_notifications(
-            self,
-            message_id: int = 0) -> dict:
-        return self.session.get(
-            f"{self.bbs_api}/api/notification/system_msg_list?uid={self.user_id}&rdkey={self.rd_key}&msg_id={message_id}").json()
+            self, message_id: int = 0) -> dict:
+        return self._get(
+            self.bbs_api,
+            f"/api/notification/system_msg_list?uid={self.user_id}&rdkey={self.rd_key}&msg_id={message_id}")
 
     def create_forum_post(
             self,
@@ -308,5 +299,5 @@ class PPPoker:
         }
         if tag_name:
             data["tag_name"] = tag_name
-        return self.session.post(
-            f"{self.bbs_api}/api/game_video/submit_post", data=data).json()
+        return self._post(
+            self.bbs_api, "/api/game_video/submit_post", data)
