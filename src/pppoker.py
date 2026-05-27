@@ -1,7 +1,6 @@
 import utils
 from time import time
 from uuid import uuid4
-from random import randint
 from requests import Session
 
 
