@@ -62,7 +62,6 @@ class PPPoker:
 			"password": utils.encode_password(password, timestamp),
 			"t": str(timestamp),
 			"os": self.platform,
-			"code": "3061",
 			"distributor": 0,
 			"country": self.country,
 			"appid": self.app_id,
@@ -150,7 +149,7 @@ class PPPoker:
 	def verify_email_code(self, uid: str, code: str) -> dict:
 		data = {
 			"uid": uid,
-			"code": str(code),
+			"code": code,
 			"imei": self.imei,
 			"lang": self.language
 		}
