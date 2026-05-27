@@ -1,12 +1,16 @@
 # <img src="https://play-lh.googleusercontent.com/nvRcbo4P0CNuDvsnZYxtTMPTdIL2TtTlI8j70-5P8UcaGbbHTMHA5iNE397fc5ZEOA=s96-rw" width="28" style="vertical-align:middle;" /> pppoker.py
-
-> Mobile-API for [PPPoker](https://play.google.com/store/apps/details?id=com.lein.pppoker.android) automate and interact with the PPPoker mobile poker platform including authentication, profiles, forum, and game videos.
+> Mobile-API for [PPPoker](https://play.google.com/store/apps/details?id=com.lein.pppoker.android) — automate and interact with the PPPoker mobile poker platform including authentication, profiles, forum, and game videos.
+<p align="center">
+  <a href="https://t.me/forevayounger">
+    <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white" />
+  </a>
+</p>
 
 ## Quick Start
 ```python
 from pppoker import PPPoker
 
-pppoker = PPPoker()
+pppoker = PPPoker(imei="your_device_imei")
 pppoker.login(username="your_username", password="your_password")
 ```
 
@@ -15,35 +19,46 @@ pppoker.login(username="your_username", password="your_password")
 ## Constructor Options
 ```python
 PPPoker(
-    app_id="globle",    # app identifier
-    app_type=1,         # app type
-    language="ru",      # language code
-    platform="android", # platform identifier
-    region=2,           # region ID
-    country="RU"        # country code
+    imei="your_imei",
+    app_id="globle",
+    app_type=1,
+    language="ru",
+    platform="android",
+    region=2,
+    country="RU"
 )
 ```
-
-> On instantiation, `PPPoker` automatically fetches the latest client version — no extra setup needed.
 
 ---
 
 ## Authentication
-
 | Method | Description |
 |--------|-------------|
 | `login(username, password, login_type)` | Sign in with credentials |
 | `login_as_guest()` | Sign in as a guest |
 | `register(username, password)` | Create a new account |
-| `get_verification_code(email, valid_type)` | Request email verification code |
+| `get_reset_code(email, valid_type)` | Request email verification/reset code |
+| `get_email_code(uid)` | Request device verification code |
+| `verify_email_code(uid, code)` | Submit device verification code |
 | `link_email(email, verification_code)` | Link an email to your account |
 | `unlink_email(email, password)` | Unlink email from your account |
 | `change_password(new_password, old_password)` | Change account password |
 
+### Device verification (code `-15`)
+```python
+result = pppoker.login("username", "password")
+
+if result.get("code") == -15:
+    uid = result["uid"]
+    pppoker.get_email_code(uid)
+    code = input("Code: ")
+    pppoker.verify_email_code(uid, code)
+```
+> `imei` must match the one registered in your client.
+
 ---
 
 ## Profile
-
 | Method | Description |
 |--------|-------------|
 | `edit_profile(country)` | Update profile country |
@@ -57,7 +72,6 @@ PPPoker(
 ---
 
 ## Forum
-
 | Method | Description |
 |--------|-------------|
 | `get_forum_featured(recommend_id)` | Get featured forum posts |
@@ -69,7 +83,6 @@ PPPoker(
 ---
 
 ## Game Videos
-
 | Method | Description |
 |--------|-------------|
 | `get_user_game_videos(user_id, post_id)` | Get game videos by a user |
@@ -82,7 +95,6 @@ PPPoker(
 ---
 
 ## Notifications
-
 | Method | Description |
 |--------|-------------|
 | `get_unread_notifications()` | Get unread notification count |
@@ -92,7 +104,6 @@ PPPoker(
 ---
 
 ## Misc
-
 | Method | Description |
 |--------|-------------|
 | `get_client_version()` | Get latest client version info |
