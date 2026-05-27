@@ -6,11 +6,9 @@ from datetime import datetime, timedelta, timezone
 DELTA = 0x9E3779B9
 DEFAULT_SUFFIX = "d5659066d5"
 
-
 def _imei() -> str:
 	return md5(
 		str(randint(0, 999999999)).encode()).hexdigest()
-
 
 def to_uint32_array(data: bytes, include_len: bool) -> list:
 	word_count = (len(data) + 3) // 4
