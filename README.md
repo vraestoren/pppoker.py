@@ -1,5 +1,5 @@
 # <img src="https://play-lh.googleusercontent.com/nvRcbo4P0CNuDvsnZYxtTMPTdIL2TtTlI8j70-5P8UcaGbbHTMHA5iNE397fc5ZEOA=s96-rw" width="28" style="vertical-align:middle;" /> pppoker.py
-> Mobile-API for [PPPoker](https://play.google.com/store/apps/details?id=com.lein.pppoker.android) — automate and interact with the PPPoker mobile poker platform including authentication, profiles, forum, and game videos.
+> Mobile-API for [PPPoker](https://play.google.com/store/apps/details?id=com.lein.pppoker.android) automate and interact with the PPPoker mobile poker platform including authentication, profiles, forum, and game videos.
 <p align="center">
   <a href="https://t.me/forevayounger">
     <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=flat&logo=telegram&logoColor=white" />
